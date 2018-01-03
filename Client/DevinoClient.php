@@ -23,9 +23,13 @@ class DevinoClient implements ClientInterface
     private $baseUrl = 'https://integrationapi.net/rest/{method}';
 
     /**
-     * @var int таймаут для соединения с сервисом (секунды)
+     * @var array GuzzleConfig
      */
-    private $timeout;
+    private $config = [
+        'timeout' => 20,
+        'connect_timeout' => 20,
+        'force_ip_resolve' => 'v4',
+    ];
 
     /**
      *
@@ -43,9 +47,7 @@ class DevinoClient implements ClientInterface
         if (!$this->isValidRequest($requestType)) {
             throw new \Exception('Недопустимый тип запроса - используйте GET или POST');
         }
-        $client = new \GuzzleHttp\Client([
-            'timeout' => $this->getTimeout()
-        ]);
+        $client = new \GuzzleHttp\Client($this->getConfig());
         try {
             $response = $client->$requestType($this->getUrl($method), ['form_params' => $params]);
         } catch (ClientException $e) {
@@ -64,25 +66,20 @@ class DevinoClient implements ClientInterface
         }
     }
 
-    /**
-     * Получить таймаут
-     *
-     * @return int
-     */
-    public function getTimeout()
-    {
-        return ($this->timeout) ? $this->timeout : self::TIMEOUT;
-    }
-
-    /**
-     * Установить таймаут
-     *
-     * @param int $second секунд
-     */
-    public function setTimeout($second)
-    {
-        $this->timeout = $second;
-    }
+	/**
+	 * @return array
+	 */
+	public function getConfig()
+	{
+		return $this->config;
+	}
+	/**
+	 * @param array $config
+	 */
+	public function setConfig(array $config)
+	{
+		$this->config = $config;
+	}
 
     /**
      * Валидация типа запроса
